@@ -3,112 +3,22 @@
 </header>
 
 <body>
-	<h3>
-		<span id="current_activity"></span>
-		<span id="duration"></span>
-	</h3>
   <div>
     <input
 			id="activity_input"
 			type="text"
 			placeholder="Start working on something else :X">
 		</input>
-		<button id="record_btn">record</button>
-		<button id="finish_btn">finish</button>
-		<button id="pause_btn">pause</button>
+		<button id="start_btn">start new activity</button>
+		<button id="finish_btn">finish activity!</button>
+		<button id="interrupt_btn">interrupt</button>
+		<button id="continue_btn">continue</button>
 	</div>
+
+	<h3 id="current_activity"></h3>
 
   <ul class="activity_log"></ul>
   <div class="debug"></div>
 
-	<script>
-		const STATE = {
-				accumulatedTime: 0,
-				startTime: 0,
-				status: 'NEW',
-				currentActivity: 'looking at the floor',
-		};
-
-    const $activity_input = document.getElementById('activity_input');
-    const $current_activity = document.getElementById('current_activity');
-    const $duration = document.getElementById('duration');
-    const $record_btn = document.getElementById('record_btn');
-		const $pause_btn = document.getElementById('pause_btn');
-		const $finish_btn = document.getElementById('finish_btn');
-    const $activity_log = document.getElementsByClassName('activity_log')[0];
-    const $debug = document.getElementsByClassName('debug')[0];
-
-		// Event listeners
-		$pause_btn.addEventListener('click', () => {
-				switch(STATE.status) {
-				case 'PAUSED':
-						unpause();
-						break;
-				default:
-						pause();
-				}
-		});
-
-		$record_btn.addEventListener('click', record);
-		$finish_btn.addEventListener('click', finishActivity);
-
-    // TODO (juanandres) Test if accumulating time gives me overflows :X
-		// (using seconds is ok, since it is practically impossible I can focus on
-		// something for over a week!)
-    function record() {
-			// TODO (juanandres) disable if not input
-			if (STATE.status !== 'NEW') {
-				logActivity();
-			}
-
-			STATE.status = 'RECORDING';
-      STATE.currentActivity = $activity_input.value;
-			$activity_input.value = null;
-      STATE.accumulatedTime = 0;
-      STATE.startTime = Date.now();
-    }
-
-		function finishActivity() {
-			logActivity();
-			STATE.status = 'NEW';
-			STATE.currentActivity = 'idling; waiting for work';
-			STATE.accumulatedTime = 0;
-			STATE.startTime = Date.now();
-		}
-
-    function pause() {
-      STATE.status = 'PAUSED';
-      STATE.accumulatedTime += Date.now() - STATE.startTime;
-      STATE.startTime = 0;
-    }
-    function unpause() {
-        STATE.status = 'RECORDING';
-        STATE.startTime = Date.now();
-    }
-
-		function calcStateDurationInSecs() {
-			return ((STATE.accumulatedTime + (Date.now() - STATE.startTime))/1000)|0
-		}
-
-    function logActivity() {
-        const $activity = document.createElement('li');
-        $activity.innerHTML = STATE.currentActivity + ':' + calcStateDurationInSecs();
-        $activity_log.insertBefore($activity, $activity_log.firstChild);
-    }
-
-    // TODO (juanandres) not proud of this of course!
-    function draw() {
-        setInterval(() => {
-            $debug.innerHTML = JSON.stringify(STATE, null, 2);
-            if (STATE.status === 'PAUSED') return;
-            $current_activity.innerHTML = STATE.currentActivity;
-            let secs = calcStateDurationInSecs();
-						$duration.innerHTML = '(' + secs + ' secs)';
-        }, 1000)
-    }
-
-    STATE.startTime = Date.now();
-    draw();
-	</script>
-
+	<script src="app.js"></script>
 </body>

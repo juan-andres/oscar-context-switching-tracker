@@ -1,3 +1,9 @@
+/**
+  TODOs
+  - Update tab every minute
+  - Record how many interrupts and how long each
+**/
+
 // TODO (juanandres) Test if accumulating time gives me overflows :X
 // (using seconds is ok, since it is practically impossible I can focus on
 // something for over a week!)
@@ -39,6 +45,8 @@ function start() {
 
   STATE.interruptedTime = 0;
   STATE.startInterruptedTime = 0;
+
+  $finish_btn.classList.remove("hidden");
 }
 
 function finish() {
@@ -51,10 +59,14 @@ function finish() {
 
   STATE.interruptedTime = 0;
   STATE.startInterruptedTime = 0;
+
+  $finish_btn.classList.add("hidden");
 }
 
 function pause() {
   if (STATE.status === 'PAUSED') return;
+  $interrupt_btn.classList.toggle("hidden");
+  $continue_btn.classList.toggle("hidden");
   STATE.status = 'PAUSED';
   STATE.accumulatedTime += (Date.now() - STATE.startTime);
   STATE.startTime = 0;
@@ -63,6 +75,8 @@ function pause() {
 }
 function unpause() {
   if (STATE.status === 'RECORDING') return;
+  $interrupt_btn.classList.toggle("hidden");
+  $continue_btn.classList.toggle("hidden");
   STATE.status = 'RECORDING';
   STATE.startTime = Date.now();
   STATE.interruptedTime += Date.now() - STATE.startInterruptedTime;
@@ -97,7 +111,7 @@ function draw() {
         // $debug.innerHTML = JSON.stringify(STATE, null, 2);
         console.log(STATE);
         $current_activity.innerHTML = getActivityPretty();
-    }, 1000)
+    }, 500)
 }
 
 draw();

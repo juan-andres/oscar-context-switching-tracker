@@ -1,24 +1,33 @@
-<header>
-	<title>Context Switching Tracker</title>
-</header>
+<!DOCTYPE html>
+	<head>
+		<title>Context Switching Tracker</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<body>
-  <div>
-    <input
-			id="activity_input"
-			type="text"
-			placeholder="Start working on something else :X">
-		</input>
-		<button id="start_btn">start new activity</button>
-		<button id="finish_btn">finish activity!</button>
-		<button id="interrupt_btn">interrupt</button>
-		<button id="continue_btn">continue</button>
-	</div>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+		<link rel="stylesheet" type="text/css" href="styles.css">
+	</head>
 
-	<h3 id="current_activity"></h3>
+	<body>
 
-  <ul class="activity_log"></ul>
-  <div class="debug"></div>
+		<div class="input_container">
+			  <input
+					id="activity_input"
+					type="text"
+					placeholder="Start working on something else...">
+				</input>
+				<button id="start_btn">start new activity</button>
+		</div>
+		<div class="current_activity_container">
+			<h1 id="current_activity"></h1>
+			<button class="hidden" id="finish_btn">Finish</button>
+			<button id="interrupt_btn">Interrupt</button>
+			<button class="hidden" id="continue_btn">Continue</button>
+		</div>
 
-	<script src="app.js"></script>
-</body>
+		<ul class="activity_log"></ul>
+
+	  <div class="debug"></div>
+
+		<script src="app.js"></script>
+	</body>
+</html>

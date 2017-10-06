@@ -3,6 +3,7 @@
   - Update tab every minute
   - Record how many interrupts and how long each (DONE)
   - Disable `start new activity` btn if no text is present
+  - Allow user to input the name of the interruption
 **/
 
 const STATUS = {
@@ -11,7 +12,7 @@ const STATUS = {
   FINISHED: 3,
 };
 
-const $current_activity = document.getElementById('current_activity');
+const $current_activity_label = document.getElementById('current_activity_label');
 const $activity_input = document.getElementById('activity_input');
 const $activity_log = document.getElementsByClassName('activity_log')[0];
 
@@ -43,7 +44,7 @@ class Activity {
   pause() {
     if (this.status === STATUS.PAUSED) return;
     this.status = STATUS.PAUSED;
-    // TODO allow user to input the name of the interruption
+
     const interruption = new Activity('interruption:custom name');
     interruption.record();
     this.interruptions.push(interruption);
@@ -151,7 +152,7 @@ class App {
   draw() {
     setInterval(() => {
         if (this.currentActivity) {
-          $current_activity.innerHTML = this.currentActivity.toString();
+          $current_activity_label.innerHTML = this.currentActivity.toString();
         }
     }, 500)
   }

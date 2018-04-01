@@ -23,6 +23,20 @@
 
 		<ul class="activity_log"></ul>
 
-		<script src="app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
+    <script>
+      // Initialize Firebase
+      var config = {
+        apiKey: "AIzaSyAGEIlTMdtha_J1a4dl1PwGH19-KPK2XK0",
+        authDomain: "context-switching.firebaseapp.com",
+        databaseURL: "https://context-switching.firebaseio.com",
+        projectId: "context-switching",
+        storageBucket: "context-switching.appspot.com",
+        messagingSenderId: "354313127993"
+      };
+      firebase.initializeApp(config);
+    </script>
+    <!-- <script src="firebaseApp.js"></script> -->
+    <script src="app.js"></script>
 	</body>
 </html>

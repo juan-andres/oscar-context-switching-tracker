@@ -92,6 +92,7 @@ class App {
   constructor() {
     this.currentActivity = null;
     this.history = [];
+    this.loadHistory();
 
     // Event listeners
     $start_btn.addEventListener('click', this.startNewActivity.bind(this));
@@ -100,11 +101,50 @@ class App {
     $continue_btn.addEventListener('click', this.continueCurrentActivity.bind(this));
   }
 
+  createActivityFromData(data) {
+    let interruptions = [];
+    if (data.interruptions) {
+      data.interruptions.forEach(interruption => interruptions.push(this.createActivityFromData(interruption)));
+    }
+
+    const newActivity = new Activity(data.name);
+    newActivity.status = data.status;
+    newActivity.finishTimeStamp = data.finishTimeStamp;
+    newActivity.startTimeStamp = data.startTimeStamp;
+    return newActivity;
+  }
+
+  loadHistory() {
+    firebase.database().ref('/activities/').once('value').then((snapshot) => {
+      snapshot.forEach((childSnapshot) => {
+        const newActivity = this.createActivityFromData(childSnapshot.val());
+        this.history.push(newActivity);
+        const $activity = document.createElement('li');
+        $activity.innerHTML = newActivity.toString();
+        $activity_log.insertBefore($activity, $activity_log.firstChild);
+      });
+    });
+  }
+
   logCurrentActivity() {
     this.history.push(this.currentActivity);
     const $activity = document.createElement('li');
     $activity.innerHTML = this.currentActivity.toString();
     $activity_log.insertBefore($activity, $activity_log.firstChild);
+  }
+
+  saveCurrentActivity() {
+    var database = firebase.database();
+
+    var newActivityKey = firebase.database().ref().child('activities').push().key;
+
+    // TODO Interruptions are themselves activities. In the data modal, maybe just
+    // save the ids of those activities and flatten this structure so we don't end
+    // storing activities under activities.
+
+    database.ref().update({
+      ['/activities/'+ newActivityKey]: this.currentActivity
+    });
   }
 
   startNewActivity() {
@@ -125,6 +165,7 @@ class App {
     if (this.currentActivity) {
       this.currentActivity.finish();
       this.logCurrentActivity();
+      this.saveCurrentActivity();
     }
 
     $finish_btn.classList.add("hidden");

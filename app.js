@@ -5,87 +5,24 @@
   - Disable `start new activity` btn if no text is present
   - Allow user to input the name of the interruption
 **/
+import {Activity, STATUS} from '/source/Activity.js';
 
-const STATUS = {
-  RECORDING: 1,
-  INTERRUPTED: 2,
-  FINISHED: 3,
-};
+const TYPEAHEAD_ENGINE = new Bloodhound({
+  datumTokenizer: Bloodhound.tokenizers.whitespace,
+  queryTokenizer: Bloodhound.tokenizers.whitespace,
+  local: ['development', 'code review', 'reading', 'social media']
+});
 
-const $current_activity_label = document.getElementById('current_activity_label');
-const $activity_input = document.getElementById('activity_input');
-const $activity_log = document.getElementsByClassName('activity_log')[0];
-
-const $start_btn = document.getElementById('start_btn');
-const $finish_btn = document.getElementById('finish_btn');
-const $interrupt_btn = document.getElementById('interrupt_btn');
-const $continue_btn = document.getElementById('continue_btn');
-
-function prettyTime(ms) {
-  const mins = ((ms / 60000) | 0) % 60;
-  const seconds = ((ms / 1000) | 0) % 60;
-  if (mins > 0) {
-    const hours = (ms / 3600000) | 0;
-    return hours !== 0 ? `${hours}h ${mins}m` : `${mins}m ${seconds}s`;
-  } else {
-    return `${seconds}s`;
-  }
-}
-
-class Activity {
-  constructor(name) {
-    this.name = name;
-    this.status = STATUS.PAUSED;
-    this.startTimeStamp = Date.now();
-    this.finishTimeStamp = null;
-    this.interruptions = []; // Activities
-  }
-
-  pause() {
-    if (this.status === STATUS.PAUSED) return;
-    this.status = STATUS.PAUSED;
-
-    const interruption = new Activity('interruption:custom name');
-    interruption.record();
-    this.interruptions.push(interruption);
-  }
-
-  record() {
-    if (this.status === STATUS.RECORDING) return;
-    this.status = STATUS.RECORDING;
-    this._finishLastInterruption()
-  }
-
-  finish() {
-    if (this.status === STATUS.FINISH) return;
-    this.status = STATUS.FINISHED;
-    this._finishLastInterruption();
-    this.finishTimeStamp = Date.now();
-    return this;
-  }
-
-  _finishLastInterruption() {
-    if (this.interruptions.length > 0) {
-      const lastInterruption = this.interruptions[this.interruptions.length - 1];
-      lastInterruption.finish();
-    }
-  }
-
-  toString() {
-    const activityMs = this.elapsedTime();
-    const interruptionsMs = this.interruptionsTime();
-    const nInterruptions = this.interruptions.length;
-    return `${this.name} ${prettyTime(activityMs - interruptionsMs)} (interrupted ${nInterruptions} times ${prettyTime(interruptionsMs)} )`;
-  }
-
-  elapsedTime() {
-    const finishTimeStamp = this.status === STATUS.FINISHED ? this.finishTimeStamp : Date.now();
-    return finishTimeStamp - this.startTimeStamp;
-  }
-
-  interruptionsTime() {
-    return this.interruptions.reduce((sum, i) => {return sum + i.elapsedTime()}, 0);
-  }
+function initTypeahead() {
+  $('#activity_input').typeahead({
+    hint: true,
+    highlight: true,
+    minLength: 1
+  },
+  {
+    name: 'activities',
+    source: TYPEAHEAD_ENGINE
+  });
 }
 
 class App {
@@ -93,44 +30,30 @@ class App {
     this.currentActivity = null;
     this.history = [];
     this.loadHistory();
+    initTypeahead();
 
-    // Event listeners
-    $start_btn.addEventListener('click', this.startNewActivity.bind(this));
-    $finish_btn.addEventListener('click', this.finishCurrentActivity.bind(this));
-    $interrupt_btn.addEventListener('click', this.pauseCurrentActivity.bind(this));
-    $continue_btn.addEventListener('click', this.continueCurrentActivity.bind(this));
-  }
-
-  createActivityFromData(data) {
-    let interruptions = [];
-    if (data.interruptions) {
-      data.interruptions.forEach(interruption => interruptions.push(this.createActivityFromData(interruption)));
-    }
-
-    const newActivity = new Activity(data.name);
-    newActivity.status = data.status;
-    newActivity.finishTimeStamp = data.finishTimeStamp;
-    newActivity.startTimeStamp = data.startTimeStamp;
-    return newActivity;
+    $('#start_btn').click(this.startNewActivityHandler.bind(this));
+    $('#finish_btn').click(this.finishCurrentActivityHandler.bind(this));
+    $('#plan_pause_btn').click(this.playPauseCurrentActivityHandler.bind(this));
   }
 
   loadHistory() {
     firebase.database().ref('/activities/').once('value').then((snapshot) => {
       snapshot.forEach((childSnapshot) => {
-        const newActivity = this.createActivityFromData(childSnapshot.val());
-        this.history.push(newActivity);
-        const $activity = document.createElement('li');
-        $activity.innerHTML = newActivity.toString();
-        $activity_log.insertBefore($activity, $activity_log.firstChild);
+        const newActivity = new Activity(childSnapshot.val());
+        this.logActivity(newActivity);
+        TYPEAHEAD_ENGINE.add(newActivity.name);
       });
     });
   }
 
-  logCurrentActivity() {
-    this.history.push(this.currentActivity);
-    const $activity = document.createElement('li');
-    $activity.innerHTML = this.currentActivity.toString();
-    $activity_log.insertBefore($activity, $activity_log.firstChild);
+  logActivity(activity) {
+    this.history.push(activity);
+    this.addCurrentActivityToTable(activity);
+  }
+
+  addCurrentActivityToTable(activity) {
+    $('#activity_table:first-child').prepend(`<tr><td>${activity.toString()}</td></tr>`);
   }
 
   saveCurrentActivity() {
@@ -147,45 +70,42 @@ class App {
     });
   }
 
-  startNewActivity() {
-    if (this.currentActivity) {
-      this.currentActivity.finish();
-      this.logCurrentActivity();
-    }
-    this.currentActivity = new Activity($activity_input.value);
+  setNewCurrentActivity() {
+    this.currentActivity = new Activity({name: $('#activity_input').val()});
     this.currentActivity.record();
+    $('#activity_input').val(null);
+  }
 
-    $activity_input.value = null;
-    $finish_btn.classList.remove("hidden");
-    $interrupt_btn.classList.remove("hidden");
-    $continue_btn.classList.add("hidden");
+  startNewActivityHandler() {
+    if (this.currentActivity) {
+      this.finishCurrentActivity();
+    }
+    this.setNewCurrentActivity();
+
+    $('.card').show();
+    $('#play_pause_btn').text('Interrupt');
   }
 
   finishCurrentActivity() {
-    if (this.currentActivity) {
-      this.currentActivity.finish();
-      this.logCurrentActivity();
-      this.saveCurrentActivity();
-    }
-
-    $finish_btn.classList.add("hidden");
-    $interrupt_btn.classList.add("hidden");
-    $continue_btn.classList.add("hidden");
-
+    this.currentActivity.finish();
+    this.logActivity(this.currentActivity);
+    this.saveCurrentActivity();
+    TYPEAHEAD_ENGINE.add(this.currentActivity.name);
     this.currentActivity = null;
   }
 
-  pauseCurrentActivity() {
-    if (!this.currentActivity) return;
-    this.currentActivity.pause();
-    $interrupt_btn.classList.add("hidden");
-    $continue_btn.classList.remove("hidden");
+  finishCurrentActivityHandler() {
+    this.finishCurrentActivity();
+
+    $('.card').hide();
   }
-  continueCurrentActivity() {
+
+  playPauseCurrentActivityHandler() {
     if (!this.currentActivity) return;
-    this.currentActivity.record();
-    $interrupt_btn.classList.remove("hidden");
-    $continue_btn.classList.add("hidden");
+
+    this.currentActivity.toggle();
+
+    $('#play_pause_btn').text(this.currentActivity.status === STATUS.RECORDING ? 'Interrupt' : 'Continue');
   }
 
   // TODO (juanandres) not proud of this of course!
@@ -193,7 +113,7 @@ class App {
   draw() {
     setInterval(() => {
         if (this.currentActivity) {
-          $current_activity_label.innerHTML = this.currentActivity.toString();
+          $('#current_activity_label').html(this.currentActivity.toString());
         }
     }, 500)
   }

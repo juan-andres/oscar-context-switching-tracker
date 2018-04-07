@@ -1,15 +1,11 @@
-body {
-  background-color: #F9F9F9;
-}
-
-.input_container {
+/* .input_container {
     display: block;
     text-align: center;
-}
+} */
 
-#activity_input {
+/* #activity_input {
   width: 100%;
-}
+} */
 
 /*#start_btn {
   background-color: #003BDE;
@@ -17,11 +13,11 @@ body {
   color: white;
 }*/
 
-.current_activity_container {
+/* .current_activity_container {
   display: block;
   text-align: center;
-}
+} */
 
-.hidden {
+/* .hidden {
   display: none;
-}
+} */

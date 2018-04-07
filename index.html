@@ -2,27 +2,117 @@
 	<head>
 		<title>Context Switching Tracker</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
-		<link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css" />
+    <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/2.7.0/firebaseui.css" />
+
+    <style>
+      .typeahead, .tt-menu {
+        margin: 0;
+        width: 100%;
+      }
+
+      .twitter-typeahead {
+        width: 100%;
+      }
+
+      .full-width {
+        width: 100%;
+      }
+
+      .max-width {
+        max-width: 960px;
+      }
+
+      .tt-hint {
+        color: #999
+      }
+
+      .tt-menu {
+        padding: 8px 0;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+      }
+
+      .tt-suggestion {
+        padding: 3px 20px;
+        font-size: 18px;
+        line-height: 24px;
+      }
+
+      .tt-suggestion:hover {
+        cursor: pointer;
+        color: #fff;
+        background-color: #0097cf;
+      }
+
+      .tt-suggestion.tt-cursor {
+        color: #fff;
+        background-color: #0097cf;
+
+      }
+
+      .tt-suggestion p {
+        margin: 0;
+      }
+
+      #scrollable-dropdown-menu .tt-menu {
+        max-height: 150px;
+        overflow-y: auto;
+      }
+
+      #rtl-support .tt-menu {
+        text-align: right;
+      }
+    </style>
+
 	</head>
 	<body>
-		<div class="input_container">
-			  <input
-					id="activity_input"
-					type="text"
-					placeholder="Start working on something else...">
-				</input>
-				<button id="start_btn">start new activity</button>
-		</div>
-		<div class="current_activity_container">
-			<h1 id="current_activity_label"></h1>
-			<button class="hidden" id="finish_btn">Finish</button>
-			<button class="hidden" id="interrupt_btn">Interrupt</button>
-			<button class="hidden" id="continue_btn">Continue</button>
-		</div>
+    <section class="section">
+      <div class="container is-fluid">
+        <div class="field has-addons">
+          <div class="control full-width">
+            <input
+              id="activity_input"
+              class="typeahead input is-large"
+              type="text"
+              placeholder="New activity"
+            >
+          </div>
+          <div class="control">
+            <button id="start_btn" class="button is-info is-large">
+              Start
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
 
-		<ul class="activity_log"></ul>
+    <div class="columns is-centered">
+      <div class="column is-half is-narrow">
+        <div class="card" style="display:none;">
+          <div class="card-content">
+            <h4 class="title is-4 has-text-centered" id="current_activity_label"></h4>
+          </div>
+          <footer class="card-footer">
+            <a class="card-footer-item" id="finish_btn">Finish</a>
+            <a class="card-footer-item" id="play_pause_btn">Interrupt</a>
+          </footer>
+        </div>
+      </div>
+    </div>
 
+    <div class="columns is-centered">
+      <div class="column is-half is-narrow">
+        <table class="table is-striped is-fullwidth">
+          <tbody id="activity_table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="typeahead.bundle.min.js"></script>
+    <script src="https://cdn.firebase.com/libs/firebaseui/2.7.0/firebaseui.js"></script>
     <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
     <script>
       // Initialize Firebase
@@ -36,7 +126,6 @@
       };
       firebase.initializeApp(config);
     </script>
-    <!-- <script src="firebaseApp.js"></script> -->
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
 	</body>
 </html>

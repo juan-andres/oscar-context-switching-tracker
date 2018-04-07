@@ -5,7 +5,7 @@
   - Disable `start new activity` btn if no text is present
   - Allow user to input the name of the interruption
 **/
-import {Activity, STATUS} from '/source/Activity.js';
+import {Activity, STATUS} from './source/Activity.js';
 
 const TYPEAHEAD_ENGINE = new Bloodhound({
   datumTokenizer: Bloodhound.tokenizers.whitespace,

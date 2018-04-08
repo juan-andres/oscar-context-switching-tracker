@@ -64,10 +64,23 @@
       #rtl-support .tt-menu {
         text-align: right;
       }
+
+      .center-content {
+        display: flex;
+        justify-content: center;
+      }
     </style>
 
 	</head>
 	<body>
+    <nav class="navbar is-info">
+      <div class="container">
+        <div class="navbar-brand">
+          <a class="navbar-item login">Login</a>
+        </div>
+      </div>
+    </nav>
+
     <section class="section">
       <div class="container is-fluid">
         <div class="field has-addons">
@@ -103,7 +116,7 @@
     </div>
 
     <div class="columns is-centered">
-      <div class="column is-half is-narrow">
+      <div class="column is-half">
         <table class="table is-striped is-fullwidth">
           <tbody id="activity_table"></tbody>
         </table>
@@ -114,18 +127,6 @@
     <script src="typeahead.bundle.min.js"></script>
     <script src="https://cdn.firebase.com/libs/firebaseui/2.7.0/firebaseui.js"></script>
     <script src="https://www.gstatic.com/firebasejs/4.12.1/firebase.js"></script>
-    <script>
-      // Initialize Firebase
-      var config = {
-        apiKey: "AIzaSyAGEIlTMdtha_J1a4dl1PwGH19-KPK2XK0",
-        authDomain: "context-switching.firebaseapp.com",
-        databaseURL: "https://context-switching.firebaseio.com",
-        projectId: "context-switching",
-        storageBucket: "context-switching.appspot.com",
-        messagingSenderId: "354313127993"
-      };
-      firebase.initializeApp(config);
-    </script>
     <script type="module" src="app.js"></script>
 	</body>
 </html>

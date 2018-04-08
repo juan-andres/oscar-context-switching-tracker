@@ -4,6 +4,7 @@
   - Record how many interrupts and how long each (DONE)
   - Disable `start new activity` btn if no text is present
   - Allow user to input the name of the interruption
+  - Add multi device support
 **/
 import {Activity, STATUS} from '/source/Activity.js';
 
@@ -27,9 +28,9 @@ function initTypeahead() {
 
 class App {
   constructor() {
+    this.user = null;
     this.currentActivity = null;
     this.history = [];
-    this.loadHistory();
     initTypeahead();
 
     $('#start_btn').click(this.startNewActivityHandler.bind(this));
@@ -37,8 +38,15 @@ class App {
     $('#plan_pause_btn').click(this.playPauseCurrentActivityHandler.bind(this));
   }
 
+  setUser(user) {
+    this.user = user;
+    this.loadHistory();
+  }
+
   loadHistory() {
-    firebase.database().ref('/activities/').once('value').then((snapshot) => {
+    if (!this.user) return;
+
+    firebase.database().ref(this.user.uid).once('value').then((snapshot) => {
       snapshot.forEach((childSnapshot) => {
         const newActivity = new Activity(childSnapshot.val());
         this.logActivity(newActivity);
@@ -57,16 +65,18 @@ class App {
   }
 
   saveCurrentActivity() {
+    if (!this.user) return;
+
     var database = firebase.database();
 
-    var newActivityKey = firebase.database().ref().child('activities').push().key;
+    var newActivityKey = firebase.database().ref().child(this.user.uid).push().key;
 
     // TODO Interruptions are themselves activities. In the data modal, maybe just
     // save the ids of those activities and flatten this structure so we don't end
     // storing activities under activities.
 
     database.ref().update({
-      ['/activities/'+ newActivityKey]: this.currentActivity
+      [`/${this.user.uid}/${newActivityKey}`]: this.currentActivity
     });
   }
 
@@ -118,6 +128,46 @@ class App {
     }, 500)
   }
 }
+
+// Initialize Firebase
+var config = {
+  apiKey: "AIzaSyAGEIlTMdtha_J1a4dl1PwGH19-KPK2XK0",
+  authDomain: "context-switching.firebaseapp.com",
+  databaseURL: "https://context-switching.firebaseio.com",
+  projectId: "context-switching",
+  storageBucket: "context-switching.appspot.com",
+  messagingSenderId: "354313127993"
+};
+firebase.initializeApp(config);
+
+// TODO make this prettier
+let USER = null;
+
+function onAuthStateChanged(user) {
+  if (user) {
+    USER = user
+    console.log('user', USER)
+    $('.login').text(`Logout ${USER.displayName}`);
+    app.setUser(USER);
+  } else {
+    USER = null;
+    $('.login').text(`Login`);
+    if (app.currentActivity || app.history.length) {
+      location.reload();
+    }
+  }
+}
+
+firebase.auth().onAuthStateChanged(onAuthStateChanged.bind(this));
+
+$('.login').click(() => {
+  if (USER) {
+    firebase.auth().signOut();
+  } else {
+    var provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider);
+  }
+});
 
 const app = new App();
 app.draw();
